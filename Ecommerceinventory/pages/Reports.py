@@ -1,14 +1,18 @@
 import streamlit as st
 import pandas as pd
 from utils import get_db_connection
+from style_utils import apply_theme 
+
+st.set_page_config(page_title="Report generation", layout="wide")
+apply_theme()
 
 def color_speed(val):
     if val == 'fast':
-        return 'background-color: #004d40; color: #80cbc4; font-weight: bold;'
+        return 'color: #2E4053; font-weight: bold;'
     elif val == 'average':
-        return 'background-color: #3e2723; color: #d7ccc8;' 
+        return 'color: #2E4053;' 
     elif val == 'slow':
-        return 'background-color: #4a1220; color: #ffcdd2; font-weight: bold;'
+        return 'color: #E74C3C; font-weight: bold;'
     return ''
 
 def main():

@@ -2,7 +2,7 @@ use ecommerce;
 
 drop view if exists lowstockalerts;
 create view lowstockalerts as
-select productid, location, stocklevel, reorderpoint
+select productid, stocklevel, reorderpoint
 from inventory
 where stocklevel <= reorderpoint;
 
@@ -13,10 +13,17 @@ from orders
 where orderstatus = 'pending';
 
 drop view if exists supplierinfo;
-create view supplierinfo as
-select p.name as product_name, p.sku, s.name as supplier_name, ps.unitcost
-from product p, supplier s, productsupplier ps
-where p.productid = ps.productid and s.supplierid = ps.supplierid;
+CREATE OR REPLACE VIEW supplierinfo AS 
+SELECT 
+    p.name AS product_name, 
+    p.sku, 
+    s.name AS supplier_name, 
+    ps.unitcost AS base_cost,
+    ps.unitcost * 1.14 AS cost_with_vat,
+    ps.leadtimedays
+FROM product p
+JOIN productsupplier ps ON p.productid = ps.productid
+JOIN supplier s ON s.supplierid = ps.supplierid;
 
 drop view if exists admininventoryoversight;
 create view admininventoryoversight as
@@ -52,3 +59,18 @@ from supplier s
 join productsupplier ps on s.supplierid = ps.supplierid
 join product p on ps.productid = p.productid
 where ps.leadtimedays > 10;
+
+CREATE OR REPLACE VIEW product_stock AS
+SELECT 
+    p.productid,
+    p.name AS product_name, 
+    s.name AS supplier_name,
+    ps.unitcost AS supplier_price, 
+    (p.price * 1.14) AS cost_with_vat,
+    COALESCE(i.stocklevel, 0) AS stocklevel,
+    COALESCE(i.reorderpoint, 10) AS reorderpoint,
+    ps.leadtimedays
+FROM product p
+JOIN productsupplier ps ON p.productid = ps.productid
+JOIN supplier s ON ps.supplierid = s.supplierid
+LEFT JOIN inventory i ON p.productid = i.productid;

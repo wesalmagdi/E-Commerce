@@ -18,14 +18,13 @@ def get_db_connection():
 
 def check_low_stock_alerts():
     conn = get_db_connection()
-    if conn is None:
-        return 0
+    if conn is None: return 0
     try:
-        query = "SELECT COUNT(*) as count FROM lowstockalerts" 
+        query = "SELECT * FROM lowstockalerts"
         df = pd.read_sql(query, conn)
-        return int(df['count'].iloc[0]) if not df.empty else 0
+        return len(df) 
     except Exception as e:
-        print(f"Database Query Error: {e}") 
+        print(f"Error reading view: {e}")
         return 0
     finally:
         conn.close()
