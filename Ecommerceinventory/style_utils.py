@@ -1,6 +1,6 @@
 import streamlit as st
 
-def apply_theme():
+def applywo_theme():
     st.markdown("""
         <style>
         .stApp { background-color: #FFF0F5; } /* Lavender Blush */
