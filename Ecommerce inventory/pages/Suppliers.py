@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from utils import get_db_connection
 from utils import check_low_stock_alerts
+from style_utils import apply_theme
+
+st.set_page_config(page_title="Supplier Management", layout="wide")
+apply_theme()
 
 alert_count = check_low_stock_alerts()
 if alert_count > 0:

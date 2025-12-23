@@ -3,6 +3,10 @@ import pandas as pd
 import plotly.express as px
 from utils import get_db_connection
 from utils import check_low_stock_alerts
+from style_utils import apply_theme
+
+st.set_page_config(page_title="IMS Dashboard", layout="wide")
+apply_theme()
 
 def get_alert_count():
     conn = get_db_connection()
