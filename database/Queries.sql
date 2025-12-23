@@ -39,3 +39,6 @@ insert into productsupplier (productid, supplierid, unitcost, leadtimedays) valu
 (1, 1, 1000.00, 7),
 (2, 1, 15.00, 5),
 (3, 2, 60.00, 10);
+
+select * from contract 
+where supplierid = 1 and enddate >= curdate();

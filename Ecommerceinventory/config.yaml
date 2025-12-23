@@ -3,16 +3,16 @@ credentials:
     wesal:
       email: w.magdy2386@nu.edu.eg
       name: wesal
-      password: "wesal12345"
+      password: "$2b$12$99vqkoiHATcGZyDwwxo7q.t.Dxft9YniGqUdjvauwrUGh3LSE90mu" 
       roles:
         - admin
     rana:
       email: r.mohsen2397@nu.edu.eg
       name: rana mohsen
-      password: "rana12345"
+      password: "$2b$12$A7FSsdqFBjMHlUaj6IpQw.7AqgZuRKv8DTKzZcPE6aDSjiFP/3VmK"
       roles:
-        - viewer
+        - supplier 
 cookie:
   expiry_days: 30
-  key: "signature_key"
+  key: "ayhagamohema" 
   name: "auth_cookie"

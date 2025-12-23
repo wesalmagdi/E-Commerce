@@ -2,24 +2,22 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from utils import get_db_connection, check_low_stock_alerts
-from style_utils import apply_girly_theme  # Updated to your chic theme
+from style_utils import apply_theme 
 
 st.set_page_config(page_title="Order Boutique", layout="wide")
-apply_girly_theme()
+apply_theme()
 
-# Sidebar Alerts
 alert_count = check_low_stock_alerts()
 if alert_count > 0:
-    st.sidebar.error(f"🚨 {alert_count} Low Stock Alerts!")
+    st.sidebar.error(f"{alert_count} Low Stock Alerts!")
 else:
     st.sidebar.info("☁️ Stock levels normal")
 
-st.title("🎀 Order Management")
+st.title("Order Management")
 
 conn = get_db_connection()
 
-# --- SECTION 1: CREATE NEW ORDER (Requirement #4) ---
-with st.expander("✨ Create New Restock Order"):
+with st.expander("Create New Restock Order"):
     with st.form("new_order_form"):
         suppliers = pd.read_sql("select supplierid, name from supplier", conn) #
         products = pd.read_sql("select productid, name from product", conn) #
@@ -44,7 +42,7 @@ with st.expander("✨ Create New Restock Order"):
                 cursor.execute("INSERT INTO orderitem (orderid, productid, quantity) VALUES (%s, %s, %s)", (order_id, int(prod_id), qty))
                 
                 conn.commit()
-                st.info(f"Order #{order_id} recorded for {sel_prod}! ✨")
+                st.info(f"Order #{order_id} recorded for {sel_prod}!")
             except Exception as e:
                 st.error(f"Failed to create order: {e}")
             finally:
@@ -52,7 +50,7 @@ with st.expander("✨ Create New Restock Order"):
 
 st.markdown("---")
 
-st.subheader("🚚 Receive Deliveries")
+st.subheader("Receive Deliveries")
 query_pending = """
     SELECT o.orderid, s.name as supplier, p.name as product, oi.quantity
     FROM orders o
@@ -90,6 +88,6 @@ if not df_pending.empty:
         finally:
             cursor.close()
 else:
-    st.write("All orders have arrived! Your boutique is full. ☁️")
+    st.write("All orders have arrived! Your boutique is full. ")
 
 conn.close()
