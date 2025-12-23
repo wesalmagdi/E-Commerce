@@ -1,32 +1,53 @@
 import streamlit as st
-from utils import get_db_connection
 import pandas as pd
+from datetime import datetime
+from utils import get_db_connection
+from utils import check_low_stock_alerts
 
-st.title("Record a Sale")
+alert_count = check_low_stock_alerts()
+if alert_count > 0:
+    st.sidebar.error(f"{alert_count} Low Stock Alerts!")
+    st.sidebar.info("Check the Dashboard or Inventory page for details.")
+else:
+    st.sidebar.success("Stock levels normal")
+
+st.title("Receive Deliveries")
 
 conn = get_db_connection()
 
-df_p = pd.read_sql("SELECT product_id, name, price, stock_quantity FROM products", conn)
-product_options = {row['name']: row['product_id'] for _, row in df_p.iterrows()}
+query_pending = """
+    SELECT o.orderid, s.name as supplier
+    FROM orders o
+    JOIN supplier s ON o.supplierid = s.supplierid
+    WHERE o.orderstatus = 'pending'
+"""
+df_pending = pd.read_sql(query_pending, conn)
 
-with st.form("sale_form"):
-    selected_name = st.selectbox("Select Product", options=list(product_options.keys()))
-    quantity = st.number_input("Quantity Sold", min_value=1)
+if not df_pending.empty:
+    selected_order = st.selectbox("Select Pending Order ID", df_pending['orderid'])
     
-    if st.form_submit_button("Confirm Sale"):
-        p_id = product_options[selected_name]
-        current_stock = df_p[df_p['product_id'] == p_id]['stock_quantity'].values[0]
-        unit_price = df_p[df_p['product_id'] == p_id]['price'].values[0]
-
-        if current_stock >= quantity:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO orders (product_id, quantity, total_price) VALUES (%s, %s, %s)", 
-                           (p_id, quantity, (unit_price * quantity)))
-            cursor.execute("UPDATE products SET stock_quantity = stock_quantity - %s WHERE product_id = %s", 
-                           (quantity, p_id))
+    if st.button("Mark as Received & Update Stock"):
+        cursor = conn.cursor()
+        try:
+            today = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("UPDATE orders SET orderstatus = 'received', receiveddate = %s WHERE orderid = %s", (today, selected_order))
+            
+            update_stock_query = """
+                UPDATE inventory i
+                JOIN orderitem oi ON i.productid = oi.productid
+                SET i.stocklevel = i.stocklevel + oi.quantity
+                WHERE oi.orderid = %s
+            """
+            cursor.execute(update_stock_query, (selected_order,))
+            
             conn.commit()
-            st.success(f"Sale recorded! Remaining stock: {current_stock - quantity}")
-        else:
-            st.error("Not enough stock available!")
+            st.success(f"Order #{selected_order} received. Inventory stock levels have been increased!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error updating stock: {e}")
+        finally:
+            cursor.close()
+else:
+    st.info("No pending orders found.")
 
 conn.close()
