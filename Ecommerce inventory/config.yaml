@@ -1,0 +1,18 @@
+credentials:
+  usernames:
+    wesal:
+      email: w.magdy2386@nu.edu.eg
+      name: wesal
+      password: "wesal12345"
+      roles:
+        - admin
+    rana:
+      email: r.mohsen2397@nu.edu.eg
+      name: rana mohsen
+      password: "rana12345"
+      roles:
+        - viewer
+cookie:
+  expiry_days: 30
+  key: "signature_key"
+  name: "auth_cookie"
