@@ -1,24 +1,34 @@
 import streamlit as st
-from utils import get_db_connection
 import pandas as pd
+from utils import get_db_connection
+from utils import check_low_stock_alerts
 
-st.title("Supplier Directory")
+alert_count = check_low_stock_alerts()
+if alert_count > 0:
+    st.sidebar.error(f"{alert_count} Low Stock Alerts!")
+    st.sidebar.info("Check the Dashboard or Inventory page for details.")
+else:
+    st.sidebar.success("Stock levels normal")
+
+st.title("Supplier Management")
 
 conn = get_db_connection()
 
-with st.expander("Add New Supplier"):
-    with st.form("supplier_form"):
-        s_name = st.text_input("Supplier Company Name")
-        contact = st.text_input("Contact Person")
+with st.expander("Register New Supplier"):
+    with st.form("supp_form"):
+        name = st.text_input("Company Name")
         email = st.text_input("Email")
-        if st.form_submit_button("Add Supplier"):
+        val = st.number_input("Minimum Order Value", min_value=0.0)
+        curr = st.selectbox("Currency", ["EGP", "USD", "EUR"])
+        
+        if st.form_submit_button("Register"):
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO suppliers (name, contact_person, email) VALUES (%s, %s, %s)", (s_name, contact, email))
+            query = "INSERT INTO supplier (name, email, minordervalue, currency) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (name, email, val, curr))
             conn.commit()
-            st.success("Supplier Saved")
+            st.rerun()
 
-st.subheader("Current Suppliers")
-df_s = pd.read_sql("SELECT * FROM suppliers", conn)
-st.table(df_s)
+df_s = pd.read_sql("SELECT name, email, minordervalue, currency FROM supplier", conn)
+st.dataframe(df_s, use_container_width=True)
 
 conn.close()
